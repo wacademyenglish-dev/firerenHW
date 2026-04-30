@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WOLFLIX: Frieren Homework</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:ital,wght@0,400;0,700;1,700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        frieren: {
+                            night: '#0f172a',
+                            nightDark: '#020617',
+                            gold: '#fbbf24',
+                            goldDark: '#b45309',
+                            magic: '#38bdf8',
+                            panel: 'rgba(30, 41, 59, 0.85)'
+                        }
+                    },
+                    fontFamily: {
+                        fantasy: ['Cinzel', 'serif'],
+                        base: ['Lato', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020617;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.1), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(251, 191, 36, 0.05), transparent 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Lato', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- Ambient Stars Background --- */
+        .stars-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; pointer-events: none; overflow: hidden;
+        }
+        .star {
+            position: absolute; background: white; border-radius: 50%;
+            animation: twinkle infinite alternate;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 5px #fff; }
+        }
+
+        /* --- Mobile Container --- */
+        #mobile-container {
+            width: 100%; max-width: 400px; height: 100dvh; max-height: 850px;
+            background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 0 50px rgba(56, 189, 248, 0.2);
+            z-index: 10;
+        }
+
+        @media (min-width: 480px) {
+            #mobile-container {
+                height: 90vh; border-radius: 2.5rem;
+                border: 6px solid #1e293b;
+            }
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* --- Screens & Transitions --- */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 10;
+        }
+        .screen.active { transform: translateX(0); z-index: 20; }
+        .screen.previous { transform: translateX(-100%); z-index: 10; }
+
+        /* --- Option Buttons --- */
+        .option-btn {
+            background: rgba(30, 41, 59, 0.6);
+            border: 2px solid #334155;
+            color: #f8fafc;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+        .option-btn:active { transform: scale(0.98); }
+        .option-btn.selected {
+            border-color: #38bdf8;
+            background: rgba(56, 189, 248, 0.1);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+            transform: translateY(-2px);
+        }
+        .option-btn.correct {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+        .option-btn.wrong {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            opacity: 0.6;
+        }
+
+        /* --- Magic Glowing Progress --- */
+        .magic-progress {
+            box-shadow: 0 0 10px #fbbf24, 0 0 20px #fbbf24;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Stars -->
+    <div class="stars-bg" id="stars-bg"></div>
+
+    <!-- DEVICE CONTAINER -->
+    <div id="mobile-container">
+
+        <!-- STATUS BAR -->
+        <div class="h-8 flex justify-between items-center px-4 text-xs font-base text-slate-400 z-50 shrink-0 bg-transparent">
+            <span id="clock">00:00</span>
+            <div class="flex gap-2 items-center">
+                <span class="tracking-widest font-bold">GRIMOIRE OS</span>
+                <span>✧ 100%</span>
+            </div>
+        </div>
+
+        <!-- SCREEN 1: WELCOME -->
+        <div id="screen-login" class="screen active flex items-center justify-center p-6 text-center">
+            <div class="z-10 w-full flex flex-col items-center">
+                <div class="w-24 h-24 border-2 border-frieren-gold rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(251,191,36,0.3)] bg-slate-900/50">
+                    <span class="text-5xl">📖</span>
+                </div>
+                <h2 class="font-base text-sm tracking-[0.3em] text-frieren-magic mb-2 uppercase">WOLFLIX HW</h2>
+                <h1 class="font-fantasy text-4xl font-bold tracking-widest mb-4 text-white">THE GRIMOIRE</h1>
+                <p class="font-base text-lg text-slate-300 mb-12 italic opacity-80 max-w-xs leading-relaxed">
+                    "Prove your knowledge of the elven tongue and the magic of time."
+                </p>
+
+                <button onclick="startQuiz()" class="w-full bg-gradient-to-r from-frieren-goldDark to-frieren-gold text-frieren-night font-bold font-fantasy text-xl py-4 rounded-xl shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:brightness-110 transition-all uppercase tracking-widest">
+                    Open Book
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: QUIZ -->
+        <div id="screen-quiz" class="screen flex flex-col">
+            <!-- Header -->
+            <header class="p-4 shrink-0 flex items-center justify-between bg-frieren-night/80 backdrop-blur-md border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <span class="text-frieren-gold text-xl">✨</span>
+                    <span class="font-fantasy font-bold text-slate-200 uppercase tracking-widest text-sm" id="q-category">Category</span>
+                </div>
+                <span class="font-base text-frieren-magic font-bold text-sm tracking-widest" id="q-counter">1/15</span>
+            </header>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-1 bg-slate-800 shrink-0">
+                <div id="progress-bar" class="h-full bg-frieren-gold magic-progress transition-all duration-500 ease-out" style="width: 0%;"></div>
+            </div>
+
+            <!-- Scrollable Content Area -->
+            <div class="flex-1 overflow-y-auto no-scrollbar p-6 flex flex-col">
+                
+                <!-- Question Text -->
+                <h2 id="q-text" class="text-2xl font-bold text-white mb-8 leading-relaxed font-base">
+                    Question goes here?
+                </h2>
+
+                <!-- Options Grid -->
+                <div id="options-container" class="flex flex-col gap-4 mb-8">
+                    <!-- Options injected via JS -->
+                </div>
+
+                <!-- Spacer -->
+                <div class="flex-1"></div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-area" class="hidden mb-6 p-5 rounded-xl font-base text-base font-bold border border-slate-700 bg-slate-900/90 shadow-lg backdrop-blur-sm">
+                    Feedback goes here
+                </div>
+
+            </div>
+
+            <!-- Bottom Action Bar -->
+            <div class="p-4 bg-frieren-night/90 backdrop-blur-md border-t border-slate-800 shrink-0">
+                <button id="btn-next" onclick="handleNext()" disabled class="w-full bg-slate-700 text-slate-400 font-bold font-fantasy text-xl py-4 rounded-xl transition-all uppercase tracking-widest">
+                    Confirm Spell
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: RESULTS -->
+        <div id="screen-results" class="screen flex flex-col bg-frieren-night">
+            <header class="p-6 shrink-0 text-center border-b border-slate-800">
+                <span class="font-fantasy font-bold uppercase tracking-[0.2em] text-frieren-gold">Journey's End</span>
+            </header>
+
+            <div class="flex-1 flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.1)_0%,transparent_70%)]"></div>
+                
+                <div id="result-icon" class="text-7xl mb-6 z-10 drop-shadow-[0_0_20px_rgba(251,191,36,0.5)]">🪄</div>
+                <h1 id="result-title" class="text-3xl font-black font-fantasy text-white mb-2 z-10">Legendary Mage</h1>
+                <p id="result-subtitle" class="text-lg text-slate-400 mb-8 font-base z-10">You scored <span id="final-score" class="font-bold text-frieren-magic">15</span> out of 15.</p>
+                
+                <div class="w-full bg-slate-800/50 p-6 rounded-2xl border border-slate-700 mb-10 z-10 backdrop-blur-sm">
+                    <p id="result-msg" class="font-base text-lg text-slate-200 italic leading-relaxed">
+                        "Your mastery of time and magic is complete. You truly understand the weight of eternity."
+                    </p>
+                </div>
+
+                <button onclick="restartApp()" class="w-full bg-transparent border-2 border-frieren-magic text-frieren-magic font-bold font-fantasy text-lg py-4 rounded-xl shadow-[0_0_15px_rgba(56,189,248,0.2)] hover:bg-frieren-magic hover:text-frieren-night transition-colors uppercase tracking-widest z-10">
+                    Restart Quest
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- 1. Background Stars Generator ---
+        function createStars() {
+            const container = document.getElementById('stars-bg');
+            for(let i=0; i<50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                const size = Math.random() * 3 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.animationDuration = `${Math.random() * 3 + 1}s`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(star);
+            }
+        }
+        createStars();
+
+        // --- 2. Clock ---
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 3. Questions Database (15 Items) ---
+        const questions = [
+            // VOCABULARY
+            {
+                category: "Lexicon",
+                question: "What does the adjective 'fleeting' mean?",
+                options: [
+                    "Lasting for a very long time.",
+                    "Lasting for a very short time; transient.",
+                    "Flying through the sky."
+                ],
+                correctIndex: 1,
+                explanation: "Fleeting means short-lived or transient, like a human's life compared to an elf's."
+            },
+            {
+                category: "Lexicon",
+                question: "Which word means 'the length of time for which a person or animal lives'?",
+                options: ["Lifespan", "Era", "Quest"],
+                correctIndex: 0,
+                explanation: "A lifespan is the duration of a life."
+            },
+            {
+                category: "Lexicon",
+                question: "What does it mean 'to weep'?",
+                options: [
+                    "To sleep deeply.",
+                    "To shed tears; to cry due to deep sorrow.",
+                    "To cast a powerful magic spell."
+                ],
+                correctIndex: 1,
+                explanation: "To weep is to cry silently from deep emotion."
+            },
+            {
+                category: "Lexicon",
+                question: "How do you define 'regret'?",
+                options: [
+                    "A feeling of happiness about a past memory.",
+                    "A feeling of sadness about something you did or didn't do.",
+                    "A promise to do better in the future."
+                ],
+                correctIndex: 1,
+                explanation: "Regret is the sorrow felt over missed opportunities or past mistakes."
+            },
+            {
+                category: "Lexicon",
+                question: "What is an 'Era'?",
+                options: [
+                    "A long and distinct period of history.",
+                    "A short adventure or mission.",
+                    "A type of magical grimoire."
+                ],
+                correctIndex: 0,
+                explanation: "An era is a significant historical period, like the 'Golden Era' of peace."
+            },
+            // GRAMMAR: PAST SIMPLE VS PRESENT PERFECT
+            {
+                category: "Grammar: Time",
+                question: "Complete the sentence: Himmel ______ of old age.",
+                options: ["has died", "died", "dies"],
+                correctIndex: 1,
+                explanation: "Use Past Simple ('died') for a finished action in a closed time period."
+            },
+            {
+                category: "Grammar: Time",
+                question: "Complete the sentence: Frieren ______ for over a thousand years.",
+                options: ["lived", "has lived", "was living"],
+                correctIndex: 1,
+                explanation: "Use Present Perfect ('has lived') because she is still alive today."
+            },
+            {
+                category: "Grammar: For vs Since",
+                question: "Complete: They traveled together ____ ten years.",
+                options: ["since", "for", "during"],
+                correctIndex: 1,
+                explanation: "We use 'for' to show a duration or length of time."
+            },
+            {
+                category: "Grammar: For vs Since",
+                question: "Complete: Frieren has traveled alone ____ Himmel died.",
+                options: ["for", "since", "until"],
+                correctIndex: 1,
+                explanation: "We use 'since' to show a specific starting point in the past."
+            },
+            {
+                category: "Grammar: Time",
+                question: "Which sentence represents 'Elf Time' (an ongoing state)?",
+                options: [
+                    "They defeated the Demon King.",
+                    "She has not understood humans yet.",
+                    "The adventure ended."
+                ],
+                correctIndex: 1,
+                explanation: "Present Perfect ('has not understood') connects the past to the present."
+            },
+            // GRAMMAR: THIRD CONDITIONAL
+            {
+                category: "Grammar: 3rd Cond.",
+                question: "The Third Conditional is used to express:",
+                options: [
+                    "Future plans and promises.",
+                    "Real situations happening right now.",
+                    "Regrets and impossible past situations."
+                ],
+                correctIndex: 2,
+                explanation: "It's the 'grammar of regret', imagining a past that cannot be changed."
+            },
+            {
+                category: "Grammar: 3rd Cond.",
+                question: "Complete: If I ____ him better, I wouldn't have cried.",
+                options: ["knew", "have known", "had known"],
+                correctIndex: 2,
+                explanation: "Structure: If + Past Perfect (had known)."
+            },
+            {
+                category: "Grammar: 3rd Cond.",
+                question: "Complete: If they had told him they loved him, he ____ sad.",
+                options: [
+                    "wouldn't die",
+                    "wouldn't have died",
+                    "didn't die"
+                ],
+                correctIndex: 1,
+                explanation: "Structure: ... would have + Past Participle (wouldn't have died)."
+            },
+            {
+                category: "Grammar: 3rd Cond.",
+                question: "Rewrite this regret: 'She didn't visit him, so she felt guilty.'",
+                options: [
+                    "If she had visited him, she wouldn't have felt guilty.",
+                    "If she visited him, she wouldn't feel guilty.",
+                    "If she had visited him, she didn't feel guilty."
+                ],
+                correctIndex: 0,
+                explanation: "Both parts must be in the past: had visited -> wouldn't have felt."
+            },
+            {
+                category: "Grammar: 3rd Cond.",
+                question: "What is the correct structure for the Third Conditional?",
+                options: [
+                    "If + Past Simple, would + Verb.",
+                    "If + Present, will + Verb.",
+                    "If + Past Perfect, would have + Past Participle."
+                ],
+                correctIndex: 2,
+                explanation: "Example: If I had studied, I would have passed."
+            }
+        ];
+
+        // --- 4. App State ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let hasAnswered = false;
+
+        // --- 5. Navigation ---
+        function switchScreen(oldId, newId) {
+            document.getElementById(oldId).classList.replace('active', 'previous');
+            document.getElementById(newId).classList.remove('previous');
+            document.getElementById(newId).classList.add('active');
+        }
+
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            switchScreen('screen-login', 'screen-quiz');
+            loadQuestion();
+        }
+
+        function restartApp() {
+            switchScreen('screen-results', 'screen-login');
+        }
+
+        // --- 6. Quiz Logic ---
+        function loadQuestion() {
+            hasAnswered = false;
+            const q = questions[currentQuestionIndex];
+            
+            // Update UI
+            document.getElementById('q-counter').innerText = `${currentQuestionIndex + 1}/15`;
+            document.getElementById('q-category').innerText = q.category;
+            document.getElementById('q-text').innerText = q.question;
+            document.getElementById('progress-bar').style.width = `${((currentQuestionIndex) / 15) * 100}%`;
+            
+            // Render Options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn text-left p-5 rounded-2xl text-lg w-full shadow-lg';
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(index, btn);
+                container.appendChild(btn);
+            });
+
+            // Reset Footer & Feedback
+            const nextBtn = document.getElementById('btn-next');
+            nextBtn.innerText = "Cast Spell";
+            nextBtn.disabled = true;
+            nextBtn.className = "w-full bg-slate-800 text-slate-500 border-2 border-slate-700 font-bold font-fantasy text-xl py-4 rounded-xl transition-all uppercase tracking-widest cursor-not-allowed";
+            nextBtn.onclick = checkAnswer;
+
+            const fb = document.getElementById('feedback-area');
+            fb.classList.add('hidden');
+        }
+
+        let selectedIndex = null;
+        let selectedBtnEl = null;
+
+        function selectOption(index, btnEl) {
+            if(hasAnswered) return;
+
+            selectedIndex = index;
+            selectedBtnEl = btnEl;
+
+            document.querySelectorAll('.option-btn').forEach(b => {
+                b.classList.remove('selected');
+            });
+
+            btnEl.classList.add('selected');
+
+            // Enable Confirm button with Magic Style
+            const nextBtn = document.getElementById('btn-next');
+            nextBtn.disabled = false;
+            nextBtn.className = "w-full bg-frieren-magic text-frieren-night font-bold font-fantasy text-xl py-4 rounded-xl shadow-[0_0_15px_rgba(56,189,248,0.5)] transition-all uppercase tracking-widest hover:brightness-110";
+        }
+
+        function checkAnswer() {
+            hasAnswered = true;
+            const q = questions[currentQuestionIndex];
+            const isCorrect = (selectedIndex === q.correctIndex);
+            const fb = document.getElementById('feedback-area');
+            const nextBtn = document.getElementById('btn-next');
+
+            if(isCorrect) {
+                score++;
+                selectedBtnEl.classList.replace('selected', 'correct');
+                fb.classList.remove('hidden', 'text-red-400', 'border-red-500');
+                fb.classList.add('text-green-400', 'border-green-500');
+                fb.innerHTML = `<span class="text-green-400 font-black">✓ CORRECT:</span> <span class="text-slate-200">${q.explanation}</span>`;
+            } else {
+                selectedBtnEl.classList.replace('selected', 'wrong');
+                const allBtns = document.querySelectorAll('.option-btn');
+                allBtns[q.correctIndex].classList.add('correct');
+                
+                fb.classList.remove('hidden', 'text-green-400', 'border-green-500');
+                fb.classList.add('text-red-400', 'border-red-500');
+                fb.innerHTML = `<span class="text-red-400 font-black">✗ INCORRECT:</span> <span class="text-slate-200">${q.explanation}</span>`;
+            }
+
+            nextBtn.innerText = (currentQuestionIndex === 14) ? "Complete Quest" : "Next Question";
+            nextBtn.className = "w-full bg-transparent border-2 border-frieren-gold text-frieren-gold font-bold font-fantasy text-xl py-4 rounded-xl transition-all uppercase tracking-widest hover:bg-frieren-gold hover:text-frieren-night";
+            nextBtn.onclick = handleNext;
+        }
+
+        function handleNext() {
+            if(currentQuestionIndex < 14) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            document.getElementById('progress-bar').style.width = '100%';
+            setTimeout(() => {
+                switchScreen('screen-quiz', 'screen-results');
+                renderResults();
+            }, 300);
+        }
+
+        function renderResults() {
+            document.getElementById('final-score').innerText = score;
+            const icon = document.getElementById('result-icon');
+            const title = document.getElementById('result-title');
+            const msg = document.getElementById('result-msg');
+
+            if (score >= 13) {
+                icon.innerText = "🧝‍♀️";
+                title.innerText = "Legendary Mage";
+                title.classList.replace('text-white', 'text-frieren-gold');
+                msg.innerText = `"Your mastery of time and magic is complete. You truly understand the weight of eternity."`;
+            } else if (score >= 8) {
+                icon.innerText = "🛡️";
+                title.innerText = "Brave Adventurer";
+                title.classList.replace('text-white', 'text-frieren-magic');
+                msg.innerText = `"A valiant effort. Your journey is ongoing, and there is still much to learn."`;
+            } else {
+                icon.innerText = "🥀";
+                title.innerText = "Lost in Time";
+                title.classList.replace('text-white', 'text-slate-400');
+                msg.innerText = `"Your memories seem fragmented. Review the Grimoire and attempt the quest once more."`;
+            }
+        }
+
+    </script>
+</body>
+</html>
